@@ -1,0 +1,325 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Panel de enlaces</title>
+<style>
+  :root{
+    --bg:#f5f6f8; --card:#ffffff; --text:#1c1f26; --muted:#6b7280; --line:#e3e6ec;
+    --accent:#2563eb; --accent-text:#ffffff; --danger:#dc2626; --chip:#eef2ff;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#0f1115; --card:#181b22; --text:#e8eaf0; --muted:#9aa3b2; --line:#2a2f3a;
+      --accent:#5b8cff; --accent-text:#0b0d12; --danger:#f87171; --chip:#1f2638;
+    }
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+  header{max-width:1100px;margin:0 auto;padding:28px 20px 8px}
+  h1{margin:0;font-size:1.5rem}
+  header p{margin:4px 0 0;color:var(--muted);font-size:.9rem}
+  main{max-width:1100px;margin:0 auto;padding:16px 20px 40px;display:grid;grid-template-columns:1fr 1.4fr;gap:20px;align-items:start}
+  @media (max-width:760px){main{grid-template-columns:1fr}}
+  section{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:20px}
+  h2{margin:0 0 14px;font-size:1.05rem;display:flex;align-items:center;justify-content:space-between;gap:10px}
+  label{display:block;font-size:.8rem;color:var(--muted);margin:10px 0 4px}
+  input[type=text],input[type=url],input[type=date],input[type=number]{
+    width:100%;padding:9px 10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--text);font:inherit;
+  }
+  input:focus{outline:2px solid var(--accent);outline-offset:1px}
+  button{font:inherit;cursor:pointer;border-radius:8px;border:1px solid var(--line);background:var(--card);color:var(--text);padding:8px 12px}
+  button:hover{border-color:var(--accent)}
+  button.primary{background:var(--accent);color:var(--accent-text);border-color:var(--accent);font-weight:600}
+  button.danger{color:var(--danger)}
+  button.small{padding:4px 9px;font-size:.85rem}
+  .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  .grow{flex:1;min-width:120px}
+
+  /* Columna 1 */
+  .main-link{display:block;padding:16px;border-radius:10px;background:var(--chip);border:1px solid var(--line);text-decoration:none;color:var(--accent);font-weight:600;word-break:break-all}
+  .main-link:hover{border-color:var(--accent)}
+  .main-link small{display:block;color:var(--muted);font-weight:400;margin-top:2px}
+  .empty{color:var(--muted);font-size:.9rem;margin:0 0 6px}
+  .date-box{margin-top:18px;padding-top:14px;border-top:1px solid var(--line)}
+  .date-shown{font-size:1.1rem;font-weight:600;margin:2px 0 8px}
+
+  /* Columna 2 */
+  .week{border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:14px;background:var(--bg)}
+  .week-head{display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap}
+  .week-head .num{width:80px}
+  .week-head .dt{width:160px}
+  .week-head label{margin-top:0}
+  .week-head .spacer{flex:1}
+  ul.links{list-style:none;margin:12px 0 8px;padding:0}
+  ul.links li{display:flex;gap:8px;align-items:center;padding:7px 0;border-top:1px dashed var(--line)}
+  ul.links li:first-child{border-top:none}
+  ul.links a{flex:1;color:var(--accent);text-decoration:none;word-break:break-all}
+  ul.links a:hover{text-decoration:underline}
+  .no-links{color:var(--muted);font-size:.85rem;margin:10px 0 4px}
+  .add-link{display:grid;grid-template-columns:1fr 1.6fr auto;gap:8px}
+  @media (max-width:520px){.add-link{grid-template-columns:1fr}}
+  footer{max-width:1100px;margin:0 auto;padding:0 20px 40px;color:var(--muted);font-size:.8rem}
+  footer .row{margin-bottom:8px}
+  #toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--text);color:var(--bg);padding:8px 16px;border-radius:999px;font-size:.85rem;opacity:0;pointer-events:none;transition:opacity .2s}
+  #toast.show{opacity:1}
+</style>
+</head>
+<body>
+<header>
+  <h1>Panel de enlaces</h1>
+  <p>Todo lo que agregues o cambies aquí se guarda automáticamente en este navegador.</p>
+</header>
+
+<main>
+  <!-- Columna 1: un solo enlace permanente + fecha -->
+  <section id="col-main" aria-labelledby="t1">
+    <h2 id="t1">Enlace permanente</h2>
+    <div id="main-link-area"></div>
+    <div class="date-box">
+      <label for="main-date">Fecha de actualización</label>
+      <div class="date-shown" id="main-date-shown"></div>
+      <div class="row">
+        <input type="date" id="main-date" class="grow">
+        <button id="main-today" class="small">Hoy</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Columna 2: semanas con varios enlaces -->
+  <section id="col-weeks" aria-labelledby="t2">
+    <h2 id="t2">Semanas
+      <button id="add-week" class="primary small">+ Agregar semana</button>
+    </h2>
+    <div id="weeks"></div>
+  </section>
+</main>
+
+<footer>
+  <div class="row">
+    <button id="export" class="small">Exportar copia (.json)</button>
+    <button id="import" class="small">Importar copia</button>
+    <input type="file" id="import-file" accept="application/json" hidden>
+  </div>
+  Los datos viven en el navegador donde abras este archivo. Si cambias de equipo o borras los datos del navegador, usa "Exportar copia" para llevarte todo.
+</footer>
+<div id="toast" role="status"></div>
+
+<script>
+(function(){
+  'use strict';
+  var KEY = 'panel-enlaces-v1';
+
+  function emptyState(){ return { main:{label:'',url:'',date:''}, weeks:[] }; }
+  function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
+  function today(){
+    var d = new Date();
+    return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+  }
+
+  var state = load();
+
+  function load(){
+    try{
+      var raw = localStorage.getItem(KEY);
+      if(raw){
+        var d = JSON.parse(raw);
+        var s = emptyState();
+        if(d && d.main){ s.main = Object.assign(s.main, d.main); }
+        if(d && Array.isArray(d.weeks)){ s.weeks = d.weeks; }
+        return s;
+      }
+    }catch(e){}
+    return emptyState();
+  }
+  function save(){
+    try{ localStorage.setItem(KEY, JSON.stringify(state)); }
+    catch(e){ toast('No se pudo guardar en este navegador'); }
+  }
+
+  function toast(msg){
+    var t = document.getElementById('toast');
+    t.textContent = msg; t.classList.add('show');
+    clearTimeout(toast._t); toast._t = setTimeout(function(){ t.classList.remove('show'); }, 1800);
+  }
+
+  function normUrl(u){
+    u = (u || '').trim();
+    if(!u) return '';
+    if(!/^[a-z][a-z0-9+.-]*:/i.test(u)) u = 'https://' + u;
+    return /^https?:/i.test(u) ? u : '';
+  }
+  function fmtDate(iso){
+    if(!iso) return 'Sin fecha';
+    var p = iso.split('-'); if(p.length !== 3) return iso;
+    var d = new Date(Date.UTC(+p[0], +p[1]-1, +p[2]));
+    return d.toLocaleDateString('es-PE', { day:'numeric', month:'long', year:'numeric', timeZone:'UTC' });
+  }
+  function host(u){ try{ return new URL(u).hostname.replace(/^www\./,''); }catch(e){ return u; } }
+
+  function el(tag, props, kids){
+    var n = document.createElement(tag);
+    if(props){ Object.keys(props).forEach(function(k){
+      if(k === 'text') n.textContent = props[k];
+      else if(k.indexOf('on') === 0) n.addEventListener(k.slice(2), props[k]);
+      else n.setAttribute(k, props[k]);
+    }); }
+    (kids || []).forEach(function(c){ n.appendChild(c); });
+    return n;
+  }
+
+  /* ---------- Columna 1 ---------- */
+  var editingMain = false;
+
+  function renderMain(){
+    var area = document.getElementById('main-link-area');
+    area.textContent = '';
+    var hasLink = !!state.main.url;
+
+    if(hasLink && !editingMain){
+      var a = el('a', { 'class':'main-link', href: state.main.url, target:'_blank', rel:'noopener noreferrer' });
+      a.appendChild(document.createTextNode(state.main.label || host(state.main.url)));
+      a.appendChild(el('small', { text: state.main.url }));
+      area.appendChild(a);
+      area.appendChild(el('div', { 'class':'row', style:'margin-top:10px' }, [
+        el('button', { 'class':'small', text:'Cambiar enlace', onclick:function(){ editingMain = true; renderMain(); } })
+      ]));
+    } else {
+      if(!hasLink) area.appendChild(el('p', { 'class':'empty', text:'Aún no hay enlace. Pega el enlace permanente:' }));
+      var label = el('input', { type:'text', id:'m-label', placeholder:'Nombre (opcional)', value: state.main.label || '' });
+      var url = el('input', { type:'url', id:'m-url', placeholder:'https://…', value: state.main.url || '' });
+      area.appendChild(el('label', { 'for':'m-label', text:'Nombre' }));
+      area.appendChild(label);
+      area.appendChild(el('label', { 'for':'m-url', text:'Enlace' }));
+      area.appendChild(url);
+      var btns = [ el('button', { 'class':'primary small', text:'Guardar enlace', onclick:function(){
+        var u = normUrl(url.value);
+        if(!u){ toast('Escribe un enlace válido'); url.focus(); return; }
+        state.main.url = u; state.main.label = label.value.trim();
+        editingMain = false; save(); renderMain(); toast('Enlace guardado');
+      } }) ];
+      if(hasLink) btns.push(el('button', { 'class':'small', text:'Cancelar', onclick:function(){ editingMain = false; renderMain(); } }));
+      area.appendChild(el('div', { 'class':'row', style:'margin-top:12px' }, btns));
+    }
+
+    document.getElementById('main-date').value = state.main.date || '';
+    document.getElementById('main-date-shown').textContent = fmtDate(state.main.date);
+  }
+
+  document.getElementById('main-date').addEventListener('change', function(e){
+    state.main.date = e.target.value; save();
+    document.getElementById('main-date-shown').textContent = fmtDate(state.main.date);
+    toast('Fecha guardada');
+  });
+  document.getElementById('main-today').addEventListener('click', function(){
+    state.main.date = today(); save(); renderMain(); toast('Fecha actualizada a hoy');
+  });
+
+  /* ---------- Columna 2 ---------- */
+  function nextWeekNumber(){
+    var max = 0;
+    state.weeks.forEach(function(w){ if((+w.week || 0) > max) max = +w.week; });
+    return max + 1;
+  }
+
+  document.getElementById('add-week').addEventListener('click', function(){
+    state.weeks.push({ id: uid(), week: nextWeekNumber(), date: today(), links: [] });
+    save(); renderWeeks(); toast('Semana agregada');
+  });
+
+  function renderWeeks(){
+    var box = document.getElementById('weeks');
+    box.textContent = '';
+    if(!state.weeks.length){
+      box.appendChild(el('p', { 'class':'empty', text:'No hay semanas todavía. Usa “+ Agregar semana”.' }));
+      return;
+    }
+    var sorted = state.weeks.slice().sort(function(a,b){ return (+b.week||0) - (+a.week||0); });
+    sorted.forEach(function(w){ box.appendChild(weekCard(w)); });
+  }
+
+  function weekCard(w){
+    var numIn = el('input', { type:'number', min:'0', value: String(w.week), id:'n-'+w.id });
+    numIn.addEventListener('change', function(){
+      w.week = parseInt(numIn.value, 10) || 0; save(); renderWeeks(); toast('Semana actualizada');
+    });
+    var dateIn = el('input', { type:'date', value: w.date || '', id:'d-'+w.id });
+    dateIn.addEventListener('change', function(){ w.date = dateIn.value; save(); toast('Fecha guardada'); });
+
+    var head = el('div', { 'class':'week-head' }, [
+      el('div', { 'class':'num' }, [ el('label', { 'for':'n-'+w.id, text:'Semana' }), numIn ]),
+      el('div', { 'class':'dt' }, [ el('label', { 'for':'d-'+w.id, text:'Actualización' }), dateIn ]),
+      el('div', { 'class':'spacer' }),
+      el('button', { 'class':'small', text:'Hoy', onclick:function(){ w.date = today(); save(); renderWeeks(); } }),
+      el('button', { 'class':'small danger', text:'Quitar semana', onclick:function(){
+        if(confirm('¿Quitar la semana ' + w.week + ' y todos sus enlaces?')){
+          state.weeks = state.weeks.filter(function(x){ return x.id !== w.id; });
+          save(); renderWeeks(); toast('Semana eliminada');
+        }
+      } })
+    ]);
+
+    var list;
+    if(w.links && w.links.length){
+      list = el('ul', { 'class':'links' });
+      w.links.forEach(function(l, i){
+        var a = el('a', { href: l.url, target:'_blank', rel:'noopener noreferrer', text: l.label || host(l.url), title: l.url });
+        list.appendChild(el('li', null, [ a,
+          el('button', { 'class':'small danger', 'aria-label':'Quitar enlace', text:'✕', onclick:function(){
+            w.links.splice(i, 1); save(); renderWeeks();
+          } })
+        ]));
+      });
+    } else {
+      list = el('p', { 'class':'no-links', text:'Sin enlaces en esta semana.' });
+    }
+
+    var lb = el('input', { type:'text', placeholder:'Nombre (opcional)' });
+    var ur = el('input', { type:'url', placeholder:'https://…' });
+    function addLink(){
+      var u = normUrl(ur.value);
+      if(!u){ toast('Escribe un enlace válido'); ur.focus(); return; }
+      w.links = w.links || [];
+      w.links.push({ label: lb.value.trim(), url: u });
+      save(); renderWeeks(); toast('Enlace agregado');
+    }
+    ur.addEventListener('keydown', function(e){ if(e.key === 'Enter') addLink(); });
+    lb.addEventListener('keydown', function(e){ if(e.key === 'Enter') addLink(); });
+    var form = el('div', { 'class':'add-link' }, [ lb, ur, el('button', { 'class':'primary small', text:'Agregar', onclick:addLink }) ]);
+
+    return el('div', { 'class':'week' }, [ head, list, form ]);
+  }
+
+  /* ---------- Copia de seguridad ---------- */
+  document.getElementById('export').addEventListener('click', function(){
+    var blob = new Blob([JSON.stringify(state, null, 2)], { type:'application/json' });
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'panel-enlaces-' + today() + '.json';
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(function(){ URL.revokeObjectURL(a.href); }, 500);
+  });
+  document.getElementById('import').addEventListener('click', function(){ document.getElementById('import-file').click(); });
+  document.getElementById('import-file').addEventListener('change', function(e){
+    var f = e.target.files[0]; if(!f) return;
+    var r = new FileReader();
+    r.onload = function(){
+      try{
+        var d = JSON.parse(r.result);
+        if(!d || !d.main || !Array.isArray(d.weeks)) throw new Error('formato');
+        if(!confirm('Esto reemplazará los datos actuales. ¿Continuar?')) return;
+        state = Object.assign(emptyState(), d);
+        state.main = Object.assign(emptyState().main, d.main);
+        save(); editingMain = false; renderMain(); renderWeeks(); toast('Copia importada');
+      }catch(err){ toast('El archivo no es válido'); }
+    };
+    r.readAsText(f); e.target.value = '';
+  });
+
+  renderMain();
+  renderWeeks();
+})();
+</script>
+</body>
+</html>
