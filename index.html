@@ -8,11 +8,13 @@
   :root{
     --bg:#f5f6f8; --card:#ffffff; --text:#1c1f26; --muted:#6b7280; --line:#e3e6ec;
     --accent:#2563eb; --accent-text:#ffffff; --danger:#dc2626; --chip:#eef2ff;
+    --ok:#16a34a; --busy:#d97706;
   }
   @media (prefers-color-scheme: dark){
     :root{
       --bg:#0f1115; --card:#181b22; --text:#e8eaf0; --muted:#9aa3b2; --line:#2a2f3a;
       --accent:#5b8cff; --accent-text:#0b0d12; --danger:#f87171; --chip:#1f2638;
+      --ok:#4ade80; --busy:#fbbf24;
     }
   }
   *{box-sizing:border-box}
@@ -20,15 +22,20 @@
   header{max-width:1100px;margin:0 auto;padding:28px 20px 8px}
   h1{margin:0;font-size:1.5rem}
   header p{margin:4px 0 0;color:var(--muted);font-size:.9rem}
+  .bar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:12px}
+  .badge{display:inline-flex;align-items:center;gap:6px;font-size:.85rem;color:var(--muted);padding:3px 10px;border:1px solid var(--line);border-radius:999px;background:var(--card)}
+  .badge::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--muted)}
+  .badge.ok::before{background:var(--ok)} .badge.busy::before{background:var(--busy)} .badge.err::before{background:var(--danger)}
   main{max-width:1100px;margin:0 auto;padding:16px 20px 40px;display:grid;grid-template-columns:1fr 1.4fr;gap:20px;align-items:start}
   @media (max-width:760px){main{grid-template-columns:1fr}}
   section{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:20px}
   h2{margin:0 0 14px;font-size:1.05rem;display:flex;align-items:center;justify-content:space-between;gap:10px}
   label{display:block;font-size:.8rem;color:var(--muted);margin:10px 0 4px}
-  input[type=text],input[type=url],input[type=date],input[type=number]{
+  input[type=text],input[type=url],input[type=date],input[type=number],input[type=password]{
     width:100%;padding:9px 10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--text);font:inherit;
   }
   input:focus{outline:2px solid var(--accent);outline-offset:1px}
+  input:disabled{opacity:1;background:transparent;border-color:transparent;padding-left:0;color:var(--text);-webkit-text-fill-color:var(--text)}
   button{font:inherit;cursor:pointer;border-radius:8px;border:1px solid var(--line);background:var(--card);color:var(--text);padding:8px 12px}
   button:hover{border-color:var(--accent)}
   button.primary{background:var(--accent);color:var(--accent-text);border-color:var(--accent);font-weight:600}
@@ -37,7 +44,6 @@
   .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
   .grow{flex:1;min-width:120px}
 
-  /* Columna 1 */
   .main-link{display:block;padding:16px;border-radius:10px;background:var(--chip);border:1px solid var(--line);text-decoration:none;color:var(--accent);font-weight:600;word-break:break-all}
   .main-link:hover{border-color:var(--accent)}
   .main-link small{display:block;color:var(--muted);font-weight:400;margin-top:2px}
@@ -45,7 +51,6 @@
   .date-box{margin-top:18px;padding-top:14px;border-top:1px solid var(--line)}
   .date-shown{font-size:1.1rem;font-weight:600;margin:2px 0 8px}
 
-  /* Columna 2 */
   .week{border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:14px;background:var(--bg)}
   .week-head{display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap}
   .week-head .num{width:80px}
@@ -60,20 +65,31 @@
   .no-links{color:var(--muted);font-size:.85rem;margin:10px 0 4px}
   .add-link{display:grid;grid-template-columns:1fr 1.6fr auto;gap:8px}
   @media (max-width:520px){.add-link{grid-template-columns:1fr}}
+  body.ro .add-link, body.ro .date-box .row, body.ro #import{display:none}
   footer{max-width:1100px;margin:0 auto;padding:0 20px 40px;color:var(--muted);font-size:.8rem}
   footer .row{margin-bottom:8px}
-  #toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--text);color:var(--bg);padding:8px 16px;border-radius:999px;font-size:.85rem;opacity:0;pointer-events:none;transition:opacity .2s}
+  #toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--text);color:var(--bg);padding:8px 16px;border-radius:999px;font-size:.85rem;opacity:0;pointer-events:none;transition:opacity .2s;max-width:90vw;text-align:center}
   #toast.show{opacity:1}
+  dialog{border:1px solid var(--line);border-radius:14px;background:var(--card);color:var(--text);padding:20px;width:min(480px,92vw)}
+  dialog::backdrop{background:rgba(0,0,0,.45)}
+  dialog h3{margin:0 0 6px}
+  dialog p{margin:0 0 8px;color:var(--muted);font-size:.85rem}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .hint{font-size:.8rem;color:var(--muted);margin-top:4px}
 </style>
 </head>
 <body>
 <header>
   <h1>Panel de enlaces</h1>
-  <p>Todo lo que agregues o cambies aquí se guarda automáticamente en este navegador.</p>
+  <p id="mode-note"></p>
+  <div class="bar">
+    <span id="status" class="badge">Cargando…</span>
+    <button id="refresh" class="small">Actualizar</button>
+    <button id="settings" class="small">Configurar</button>
+  </div>
 </header>
 
 <main>
-  <!-- Columna 1: un solo enlace permanente + fecha -->
   <section id="col-main" aria-labelledby="t1">
     <h2 id="t1">Enlace permanente</h2>
     <div id="main-link-area"></div>
@@ -87,7 +103,6 @@
     </div>
   </section>
 
-  <!-- Columna 2: semanas con varios enlaces -->
   <section id="col-weeks" aria-labelledby="t2">
     <h2 id="t2">Semanas
       <button id="add-week" class="primary small">+ Agregar semana</button>
@@ -102,48 +117,79 @@
     <button id="import" class="small">Importar copia</button>
     <input type="file" id="import-file" accept="application/json" hidden>
   </div>
-  Los datos viven en el navegador donde abras este archivo. Si cambias de equipo o borras los datos del navegador, usa "Exportar copia" para llevarte todo.
+  <span id="foot-note"></span>
 </footer>
 <div id="toast" role="status"></div>
+
+<dialog id="dlg">
+  <h3>Configuración</h3>
+  <p>Para guardar cambios compartidos necesitas un token de GitHub con permiso de escritura sobre el repositorio. Se guarda solo en este navegador.</p>
+  <label for="c-token">Token de GitHub</label>
+  <input type="password" id="c-token" autocomplete="off" placeholder="github_pat_…">
+  <div class="hint" id="c-token-state"></div>
+  <div class="grid2">
+    <div><label for="c-owner">Usuario / organización</label><input type="text" id="c-owner"></div>
+    <div><label for="c-repo">Repositorio</label><input type="text" id="c-repo"></div>
+    <div><label for="c-branch">Rama</label><input type="text" id="c-branch" placeholder="main"></div>
+    <div><label for="c-path">Archivo de datos</label><input type="text" id="c-path" placeholder="data.json"></div>
+  </div>
+  <div class="hint">Si abres la página desde GitHub Pages, usuario y repositorio se detectan solos.</div>
+  <div class="row" style="margin-top:16px">
+    <button id="c-save" class="primary">Guardar</button>
+    <button id="c-clear" class="danger">Quitar token</button>
+    <span class="grow"></span>
+    <button id="c-close">Cerrar</button>
+  </div>
+</dialog>
 
 <script>
 (function(){
   'use strict';
-  var KEY = 'panel-enlaces-v1';
+  var LOCAL_KEY = 'panel-enlaces-v1';
+  var CFG_KEY   = 'panel-enlaces-cfg-v1';
+  var TOKEN_KEY = 'panel-enlaces-token-v1';
+
+  function lsGet(k){ try{ return localStorage.getItem(k); }catch(e){ return null; } }
+  function lsSet(k,v){ try{ localStorage.setItem(k,v); return true; }catch(e){ return false; } }
+  function lsDel(k){ try{ localStorage.removeItem(k); }catch(e){} }
 
   function emptyState(){ return { main:{label:'',url:'',date:''}, weeks:[] }; }
+  function normalize(d){
+    var s = emptyState();
+    if(d && d.main){ s.main = Object.assign(s.main, d.main); }
+    if(d && Array.isArray(d.weeks)){ s.weeks = d.weeks; }
+    return s;
+  }
   function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
   function today(){
     var d = new Date();
     return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
   }
 
-  var state = load();
-
-  function load(){
-    try{
-      var raw = localStorage.getItem(KEY);
-      if(raw){
-        var d = JSON.parse(raw);
-        var s = emptyState();
-        if(d && d.main){ s.main = Object.assign(s.main, d.main); }
-        if(d && Array.isArray(d.weeks)){ s.weeks = d.weeks; }
-        return s;
-      }
-    }catch(e){}
-    return emptyState();
+  /* ---------- Configuración del repositorio ---------- */
+  function detectRepo(){
+    var h = location.hostname;
+    if(!/\.github\.io$/i.test(h)) return null;
+    var p = location.pathname.split('/').filter(Boolean);
+    var repo = (p[0] && !/\.html?$/i.test(p[0])) ? p[0] : h;
+    return { owner: h.split('.')[0], repo: repo, branch: 'main', path: 'data.json' };
   }
-  function save(){
-    try{ localStorage.setItem(KEY, JSON.stringify(state)); }
-    catch(e){ toast('No se pudo guardar en este navegador'); }
+  function readCfg(){
+    var raw = lsGet(CFG_KEY);
+    if(raw){ try{ var c = JSON.parse(raw); if(c && c.owner && c.repo) return c; }catch(e){} }
+    return detectRepo();
   }
+  var cfg = readCfg();
+  var token = lsGet(TOKEN_KEY) || '';
+  function isRemote(){ return !!cfg; }
+  function canEdit(){ return !isRemote() || !!token; }
 
+  /* ---------- Utilidades ---------- */
   function toast(msg){
     var t = document.getElementById('toast');
     t.textContent = msg; t.classList.add('show');
-    clearTimeout(toast._t); toast._t = setTimeout(function(){ t.classList.remove('show'); }, 1800);
+    clearTimeout(toast._t); toast._t = setTimeout(function(){ t.classList.remove('show'); }, 2600);
   }
-
   function normUrl(u){
     u = (u || '').trim();
     if(!u) return '';
@@ -157,7 +203,6 @@
     return d.toLocaleDateString('es-PE', { day:'numeric', month:'long', year:'numeric', timeZone:'UTC' });
   }
   function host(u){ try{ return new URL(u).hostname.replace(/^www\./,''); }catch(e){ return u; } }
-
   function el(tag, props, kids){
     var n = document.createElement(tag);
     if(props){ Object.keys(props).forEach(function(k){
@@ -168,6 +213,150 @@
     (kids || []).forEach(function(c){ n.appendChild(c); });
     return n;
   }
+  function b64(s){
+    var bytes = new TextEncoder().encode(s), bin = '';
+    for(var i=0;i<bytes.length;i++) bin += String.fromCharCode(bytes[i]);
+    return btoa(bin);
+  }
+  function unb64(b){
+    var bin = atob(String(b).replace(/\s/g,'')), bytes = new Uint8Array(bin.length);
+    for(var i=0;i<bin.length;i++) bytes[i] = bin.charCodeAt(i);
+    return new TextDecoder().decode(bytes);
+  }
+
+  /* ---------- Estado visible ---------- */
+  var statusKind = '', statusText = '';
+  function setStatus(text, kind){
+    statusText = text; statusKind = kind || '';
+    var s = document.getElementById('status');
+    s.textContent = text; s.className = 'badge ' + statusKind;
+  }
+  function idleStatus(){
+    if(!isRemote()) setStatus('Modo local (solo este navegador)', '');
+    else if(canEdit()) setStatus('Compartido · edición activa', 'ok');
+    else setStatus('Compartido · solo lectura', '');
+  }
+  function renderMode(){
+    var note = document.getElementById('mode-note');
+    var foot = document.getElementById('foot-note');
+    if(isRemote()){
+      note.textContent = 'Los datos se guardan en GitHub (' + cfg.owner + '/' + cfg.repo + ') y se ven igual desde cualquier equipo.';
+      foot.textContent = canEdit()
+        ? 'Cada cambio se guarda como un commit en el archivo ' + cfg.path + ' del repositorio.'
+        : 'Estás en modo solo lectura. Para editar, pulsa "Configurar" y pega tu token de GitHub.';
+    } else {
+      note.textContent = 'Modo local: los cambios se guardan solo en este navegador. Pulsa "Configurar" para conectarlo a un repositorio de GitHub.';
+      foot.textContent = 'Si cambias de equipo o borras los datos del navegador, usa "Exportar copia" para llevarte todo.';
+    }
+    document.body.classList.toggle('ro', !canEdit());
+  }
+  function applyRO(){
+    var ro = !canEdit();
+    document.body.classList.toggle('ro', ro);
+    document.querySelectorAll('main input').forEach(function(i){ i.disabled = ro; });
+    document.querySelectorAll('main button').forEach(function(b){ b.style.display = ro ? 'none' : ''; });
+  }
+
+  /* ---------- Capa de datos remota (GitHub API) ---------- */
+  var state = emptyState();
+  var remoteSha = null;
+  var dirty = false, saving = false;
+
+  function contentsUrl(){
+    return 'https://api.github.com/repos/' + encodeURIComponent(cfg.owner) + '/' + encodeURIComponent(cfg.repo) +
+      '/contents/' + cfg.path.split('/').map(encodeURIComponent).join('/');
+  }
+  function hdr(write){
+    var h = { 'Accept': 'application/vnd.github+json' };
+    if(token) h['Authorization'] = 'Bearer ' + token;
+    if(write) h['Content-Type'] = 'application/json';
+    return h;
+  }
+  function apiError(r, j){
+    var msg = (j && j.message) || ('Error ' + r.status);
+    if(r.status === 401) return new Error('Token inválido o vencido');
+    if(r.status === 403 && /rate limit/i.test(msg)) return new Error('GitHub limitó las consultas; espera unos minutos o configura tu token');
+    if(r.status === 403) return new Error('El token no tiene permiso de escritura sobre el repositorio');
+    if(r.status === 404) return new Error('No se encontró el repositorio o la rama (o el token no tiene acceso)');
+    return new Error(msg);
+  }
+
+  async function fetchRemote(){
+    var url = contentsUrl() + '?ref=' + encodeURIComponent(cfg.branch || 'main') + '&t=' + Date.now();
+    var r = await fetch(url, { headers: hdr(false), cache: 'no-store' });
+    if(r.status === 404){
+      // Si el repo existe pero no el archivo, se parte de datos vacíos.
+      remoteSha = null; return emptyState();
+    }
+    var j = await r.json().catch(function(){ return null; });
+    if(!r.ok) throw apiError(r, j);
+    remoteSha = j.sha;
+    var data = {};
+    try{ data = JSON.parse(unb64(j.content)); }catch(e){ throw new Error('El archivo de datos no es un JSON válido'); }
+    return normalize(data);
+  }
+
+  async function putRemote(){
+    var body = {
+      message: 'Actualizar panel de enlaces',
+      content: b64(JSON.stringify(state, null, 2) + '\n'),
+      branch: cfg.branch || 'main'
+    };
+    if(remoteSha) body.sha = remoteSha;
+    var r = await fetch(contentsUrl(), { method:'PUT', headers: hdr(true), body: JSON.stringify(body) });
+    var j = await r.json().catch(function(){ return null; });
+    if(r.status === 409 || (r.status === 422 && j && /sha/i.test(j.message || ''))){
+      var ce = new Error('conflicto'); ce.conflict = true; throw ce;
+    }
+    if(!r.ok) throw apiError(r, j);
+    remoteSha = j.content.sha;
+  }
+
+  async function flush(){
+    if(saving) return;
+    saving = true; setStatus('Guardando…', 'busy');
+    try{
+      while(dirty){ dirty = false; await putRemote(); }
+      setStatus('Guardado ✓', 'ok');
+    }catch(e){
+      dirty = false;
+      if(e && e.conflict){
+        toast('Otra persona modificó los datos. Se recargaron; repite tu cambio.');
+        saving = false; await reload(); return;
+      }
+      setStatus('Error al guardar', 'err');
+      toast((e && e.message) || 'Error al guardar');
+    }finally{ saving = false; }
+  }
+
+  function save(){
+    if(!isRemote()){
+      if(!lsSet(LOCAL_KEY, JSON.stringify(state))) toast('No se pudo guardar en este navegador');
+      return;
+    }
+    if(!token){ toast('Necesitas configurar el token para guardar'); return; }
+    dirty = true; flush();
+  }
+
+  async function reload(silent){
+    if(!isRemote()){
+      var raw = lsGet(LOCAL_KEY), d = null;
+      try{ d = raw ? JSON.parse(raw) : null; }catch(e){}
+      state = normalize(d); renderAll(); idleStatus(); return;
+    }
+    if(!silent) setStatus('Cargando…', 'busy');
+    try{
+      var prevSha = remoteSha;
+      var fresh = await fetchRemote();
+      if(!silent || remoteSha !== prevSha){ state = fresh; renderAll(); }
+      idleStatus();
+    }catch(e){
+      setStatus('No se pudo cargar', 'err');
+      if(!silent) toast((e && e.message) || 'No se pudo cargar');
+    }
+  }
+
+  function renderAll(){ renderMode(); renderMain(); renderWeeks(); applyRO(); }
 
   /* ---------- Columna 1 ---------- */
   var editingMain = false;
@@ -176,15 +365,18 @@
     var area = document.getElementById('main-link-area');
     area.textContent = '';
     var hasLink = !!state.main.url;
+    var ro = !canEdit();
 
-    if(hasLink && !editingMain){
+    if(hasLink && !(editingMain && !ro)){
       var a = el('a', { 'class':'main-link', href: state.main.url, target:'_blank', rel:'noopener noreferrer' });
       a.appendChild(document.createTextNode(state.main.label || host(state.main.url)));
       a.appendChild(el('small', { text: state.main.url }));
       area.appendChild(a);
       area.appendChild(el('div', { 'class':'row', style:'margin-top:10px' }, [
-        el('button', { 'class':'small', text:'Cambiar enlace', onclick:function(){ editingMain = true; renderMain(); } })
+        el('button', { 'class':'small', text:'Cambiar enlace', onclick:function(){ editingMain = true; renderMain(); applyRO(); } })
       ]));
+    } else if(!hasLink && ro){
+      area.appendChild(el('p', { 'class':'empty', text:'Aún no hay enlace configurado.' }));
     } else {
       if(!hasLink) area.appendChild(el('p', { 'class':'empty', text:'Aún no hay enlace. Pega el enlace permanente:' }));
       var label = el('input', { type:'text', id:'m-label', placeholder:'Nombre (opcional)', value: state.main.label || '' });
@@ -197,9 +389,9 @@
         var u = normUrl(url.value);
         if(!u){ toast('Escribe un enlace válido'); url.focus(); return; }
         state.main.url = u; state.main.label = label.value.trim();
-        editingMain = false; save(); renderMain(); toast('Enlace guardado');
+        editingMain = false; save(); renderMain(); applyRO(); toast('Enlace guardado');
       } }) ];
-      if(hasLink) btns.push(el('button', { 'class':'small', text:'Cancelar', onclick:function(){ editingMain = false; renderMain(); } }));
+      if(hasLink) btns.push(el('button', { 'class':'small', text:'Cancelar', onclick:function(){ editingMain = false; renderMain(); applyRO(); } }));
       area.appendChild(el('div', { 'class':'row', style:'margin-top:12px' }, btns));
     }
 
@@ -210,10 +402,9 @@
   document.getElementById('main-date').addEventListener('change', function(e){
     state.main.date = e.target.value; save();
     document.getElementById('main-date-shown').textContent = fmtDate(state.main.date);
-    toast('Fecha guardada');
   });
   document.getElementById('main-today').addEventListener('click', function(){
-    state.main.date = today(); save(); renderMain(); toast('Fecha actualizada a hoy');
+    state.main.date = today(); save(); renderMain(); applyRO();
   });
 
   /* ---------- Columna 2 ---------- */
@@ -225,14 +416,14 @@
 
   document.getElementById('add-week').addEventListener('click', function(){
     state.weeks.push({ id: uid(), week: nextWeekNumber(), date: today(), links: [] });
-    save(); renderWeeks(); toast('Semana agregada');
+    save(); renderWeeks(); applyRO(); toast('Semana agregada');
   });
 
   function renderWeeks(){
     var box = document.getElementById('weeks');
     box.textContent = '';
     if(!state.weeks.length){
-      box.appendChild(el('p', { 'class':'empty', text:'No hay semanas todavía. Usa “+ Agregar semana”.' }));
+      box.appendChild(el('p', { 'class':'empty', text: canEdit() ? 'No hay semanas todavía. Usa “+ Agregar semana”.' : 'No hay semanas todavía.' }));
       return;
     }
     var sorted = state.weeks.slice().sort(function(a,b){ return (+b.week||0) - (+a.week||0); });
@@ -242,20 +433,20 @@
   function weekCard(w){
     var numIn = el('input', { type:'number', min:'0', value: String(w.week), id:'n-'+w.id });
     numIn.addEventListener('change', function(){
-      w.week = parseInt(numIn.value, 10) || 0; save(); renderWeeks(); toast('Semana actualizada');
+      w.week = parseInt(numIn.value, 10) || 0; save(); renderWeeks(); applyRO();
     });
     var dateIn = el('input', { type:'date', value: w.date || '', id:'d-'+w.id });
-    dateIn.addEventListener('change', function(){ w.date = dateIn.value; save(); toast('Fecha guardada'); });
+    dateIn.addEventListener('change', function(){ w.date = dateIn.value; save(); });
 
     var head = el('div', { 'class':'week-head' }, [
       el('div', { 'class':'num' }, [ el('label', { 'for':'n-'+w.id, text:'Semana' }), numIn ]),
       el('div', { 'class':'dt' }, [ el('label', { 'for':'d-'+w.id, text:'Actualización' }), dateIn ]),
       el('div', { 'class':'spacer' }),
-      el('button', { 'class':'small', text:'Hoy', onclick:function(){ w.date = today(); save(); renderWeeks(); } }),
+      el('button', { 'class':'small', text:'Hoy', onclick:function(){ w.date = today(); save(); renderWeeks(); applyRO(); } }),
       el('button', { 'class':'small danger', text:'Quitar semana', onclick:function(){
         if(confirm('¿Quitar la semana ' + w.week + ' y todos sus enlaces?')){
           state.weeks = state.weeks.filter(function(x){ return x.id !== w.id; });
-          save(); renderWeeks(); toast('Semana eliminada');
+          save(); renderWeeks(); applyRO(); toast('Semana eliminada');
         }
       } })
     ]);
@@ -267,7 +458,7 @@
         var a = el('a', { href: l.url, target:'_blank', rel:'noopener noreferrer', text: l.label || host(l.url), title: l.url });
         list.appendChild(el('li', null, [ a,
           el('button', { 'class':'small danger', 'aria-label':'Quitar enlace', text:'✕', onclick:function(){
-            w.links.splice(i, 1); save(); renderWeeks();
+            w.links.splice(i, 1); save(); renderWeeks(); applyRO();
           } })
         ]));
       });
@@ -282,7 +473,7 @@
       if(!u){ toast('Escribe un enlace válido'); ur.focus(); return; }
       w.links = w.links || [];
       w.links.push({ label: lb.value.trim(), url: u });
-      save(); renderWeeks(); toast('Enlace agregado');
+      save(); renderWeeks(); applyRO(); toast('Enlace agregado');
     }
     ur.addEventListener('keydown', function(e){ if(e.key === 'Enter') addLink(); });
     lb.addEventListener('keydown', function(e){ if(e.key === 'Enter') addLink(); });
@@ -300,7 +491,10 @@
     document.body.appendChild(a); a.click(); a.remove();
     setTimeout(function(){ URL.revokeObjectURL(a.href); }, 500);
   });
-  document.getElementById('import').addEventListener('click', function(){ document.getElementById('import-file').click(); });
+  document.getElementById('import').addEventListener('click', function(){
+    if(!canEdit()){ toast('Configura tu token para poder importar'); return; }
+    document.getElementById('import-file').click();
+  });
   document.getElementById('import-file').addEventListener('change', function(e){
     var f = e.target.files[0]; if(!f) return;
     var r = new FileReader();
@@ -308,17 +502,80 @@
       try{
         var d = JSON.parse(r.result);
         if(!d || !d.main || !Array.isArray(d.weeks)) throw new Error('formato');
-        if(!confirm('Esto reemplazará los datos actuales. ¿Continuar?')) return;
-        state = Object.assign(emptyState(), d);
-        state.main = Object.assign(emptyState().main, d.main);
-        save(); editingMain = false; renderMain(); renderWeeks(); toast('Copia importada');
+        if(!confirm('Esto reemplazará los datos actuales' + (isRemote() ? ' para todas las personas' : '') + '. ¿Continuar?')) return;
+        state = normalize(d);
+        save(); editingMain = false; renderAll(); toast('Copia importada');
       }catch(err){ toast('El archivo no es válido'); }
     };
     r.readAsText(f); e.target.value = '';
   });
 
-  renderMain();
-  renderWeeks();
+  /* ---------- Actualizar y configuración ---------- */
+  document.getElementById('refresh').addEventListener('click', function(){ reload(false); });
+
+  var dlg = document.getElementById('dlg');
+  function openDlg(){
+    var c = cfg || { owner:'', repo:'', branch:'main', path:'data.json' };
+    document.getElementById('c-owner').value = c.owner || '';
+    document.getElementById('c-repo').value = c.repo || '';
+    document.getElementById('c-branch').value = c.branch || 'main';
+    document.getElementById('c-path').value = c.path || 'data.json';
+    document.getElementById('c-token').value = '';
+    document.getElementById('c-token-state').textContent = token ? 'Ya hay un token guardado en este navegador. Déjalo vacío para conservarlo.' : 'Sin token: solo lectura.';
+    if(dlg.showModal) dlg.showModal(); else dlg.setAttribute('open','');
+  }
+  function closeDlg(){ if(dlg.close) dlg.close(); else dlg.removeAttribute('open'); }
+  document.getElementById('settings').addEventListener('click', openDlg);
+  document.getElementById('c-close').addEventListener('click', closeDlg);
+
+  document.getElementById('c-clear').addEventListener('click', function(){
+    token = ''; lsDel(TOKEN_KEY); closeDlg(); editingMain = false; renderAll(); idleStatus(); toast('Token quitado');
+  });
+
+  document.getElementById('c-save').addEventListener('click', async function(){
+    var owner = document.getElementById('c-owner').value.trim();
+    var repo = document.getElementById('c-repo').value.trim();
+    var branch = document.getElementById('c-branch').value.trim() || 'main';
+    var path = (document.getElementById('c-path').value.trim() || 'data.json').replace(/^\/+/, '');
+    var newToken = document.getElementById('c-token').value.trim();
+
+    if(owner && repo){
+      cfg = { owner: owner, repo: repo, branch: branch, path: path };
+      lsSet(CFG_KEY, JSON.stringify(cfg));
+    } else {
+      lsDel(CFG_KEY); cfg = detectRepo();
+    }
+
+    if(newToken && cfg){
+      try{
+        var r = await fetch('https://api.github.com/repos/' + encodeURIComponent(cfg.owner) + '/' + encodeURIComponent(cfg.repo),
+          { headers: { 'Accept':'application/vnd.github+json', 'Authorization':'Bearer ' + newToken } });
+        if(r.status === 401){ toast('El token no es válido'); return; }
+        if(r.status === 404){ toast('El token no tiene acceso a ese repositorio'); return; }
+        var j = await r.json().catch(function(){ return null; });
+        if(j && j.permissions && j.permissions.push === false){ toast('El token no tiene permiso de escritura (Contents: Read and write)'); return; }
+      }catch(e){ toast('No se pudo verificar el token (¿sin conexión?)'); return; }
+      token = newToken; lsSet(TOKEN_KEY, token);
+    }
+    closeDlg(); editingMain = false;
+    await reload(false);
+    if(isRemote()) toast(canEdit() ? 'Conectado con edición' : 'Conectado en modo lectura');
+  });
+
+  /* ---------- Refresco automático ---------- */
+  function autoRefresh(){
+    if(!isRemote() || saving || dirty) return;
+    var a = document.activeElement;
+    if(a && (a.tagName === 'INPUT' || a.tagName === 'TEXTAREA')) return;
+    if(editingMain) return;
+    reload(true);
+  }
+  document.addEventListener('visibilitychange', function(){ if(!document.hidden) autoRefresh(); });
+  setInterval(function(){ if(!document.hidden) autoRefresh(); }, token ? 60000 : 180000);
+
+  /* ---------- Inicio ---------- */
+  renderAll();
+  reload(false);
 })();
 </script>
 </body>
