@@ -35,7 +35,12 @@
       "id": "mwnjcubgsksck",
       "week": 13,
       "date": "2026-11-19",
-      "links": []
+      "links": [
+        {
+          "label": "Trabjo completo",
+          "url": "https://mrajolote.github.io/Trabajo_semana_13/"
+        }
+      ]
     }
   ]
 }
